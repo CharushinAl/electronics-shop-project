@@ -16,9 +16,11 @@ class Item:
         :param price: Цена за единицу товара.
         :param quantity: Количество товара в магазине.
         """
-        self.__name = name
+        self.__name = None
         self.price = price
         self.quantity = quantity
+        self.name = name
+        Item.all.append(self)
 
     def __repr__(self):
         """Возвращает данные для разработчика"""
@@ -39,7 +41,7 @@ class Item:
         if len(string) < 11:
             self.__name = string
         else:
-            print('Слишком длинная строка')
+            print('Длина наименования товара не больше 10 символов')
 
     def calculate_total_price(self) -> float:
         """
@@ -57,19 +59,15 @@ class Item:
 
     @classmethod
     def instantiate_from_csv(cls):
-        items = []
+        cls.all = []
+
         with open('../src/items.csv', newline='', encoding="cp1251") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 name = row['name']
-                price = float(row['price'])
-                quantity = int(row['quantity'])
-                item = cls(name, price, quantity)
-                items.append(item)
-
-                cls.all = items
-
-        return items
+                price = cls.string_to_number(row['price'])
+                quantity = cls.string_to_number(row['quantity'])
+                cls(name, price, quantity)
 
     @staticmethod
     def string_to_number(string):
