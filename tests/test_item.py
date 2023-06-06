@@ -2,6 +2,7 @@
 import pytest
 import csv
 from src.item import Item
+from src.phone import Phone
 
 
 @pytest.fixture
@@ -46,7 +47,6 @@ def csv_data():
             price = float(row['price'])
             quantity = int(row['quantity'])
             items.append((name, price, quantity))
-    return items
 
 
 def test_instantiate_from_csv(csv_data):
@@ -70,3 +70,21 @@ def test_repr():
 def test_str():
     item = Item("Test Item", 10.0, 5)
     assert str(item) == "Test Item"
+
+
+def test_add_valid_types():
+    phone1 = Phone("iPhone 14", 120_000, 5, 2)
+    phone2 = Phone("iPhone X", 50_000, 13, 1)
+    item = Item("Смартфон", 15000, 10)
+    assert phone1 + phone2 == 18
+    assert phone2 + item == 23
+
+
+def test_add_invalid_types():
+    phone = Phone("iPhone X", 50_000, 13, 1)
+    with pytest.raises(TypeError):
+        phone + 'string'
+
+    item = Item("Смартфон", 15000, 10)
+    with pytest.raises(TypeError):
+        item + 5
