@@ -24,11 +24,15 @@ class Item:
 
     def __repr__(self):
         """Возвращает данные для разработчика"""
-        return f"Item('{self.__name}', {self.price}, {self.quantity})"
+        return f"{self.__class__.__name__}('{self.__name}', {self.price}, {self.quantity})"
 
     def __str__(self):
         """Возвращает данные для пользователя"""
         return self.__name
+
+    def __add__(self, other):
+        if isinstance(other, Item):
+            return self.quantity + other.quantity
 
     @property
     def name(self):
