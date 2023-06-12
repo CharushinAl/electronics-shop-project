@@ -3,30 +3,23 @@ from src.item import Item
 
 class Mixin:
     langs = ["EN", "RU"]
-    _language = langs[0]
+    __language = langs[0]
 
     def __str__(self):
-        return self._language
+        return self.__language
 
     @property
     def language(self):
-        return self._language
-
-    @language.setter
-    def language(self, new_lang):
-        if new_lang in ["EN", "RU"]:
-            self._language = new_lang
-        else:
-            raise AttributeError("")
+        return self.__language
 
     @classmethod
     def change_lang(cls):
         cls.langs = [cls.langs[1], cls.langs[0]]
-        cls.language = cls.langs[0]
+        cls.__language = cls.langs[0]
         return cls
 
 
-class Keyboard(Mixin, Item):
+class KeyBoard(Mixin, Item):
     def __init(self, __name: str, price: float, quantity: int):
         super().__init__(__name, price, quantity)
 
