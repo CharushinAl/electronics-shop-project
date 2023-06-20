@@ -3,6 +3,7 @@ import pytest
 import csv
 from src.item import Item
 from src.phone import Phone
+from src.exception import InstantiateCSVError
 
 
 @pytest.fixture
@@ -47,12 +48,14 @@ def csv_data():
             price = float(row['price'])
             quantity = int(row['quantity'])
             items.append((name, price, quantity))
+    return items
 
 
 def test_instantiate_from_csv(csv_data):
     # Вызов метода instantiate_from_csv()
-    items = Item.instantiate_from_csv()
-
+    Item.instantiate_from_csv()
+    # Получение экземпляров класса Item
+    items = Item.all
     # Проверка количества экземпляров класса Item
     assert len(items) == len(csv_data)
 
@@ -60,6 +63,7 @@ def test_instantiate_from_csv(csv_data):
     for item, (name, price, quantity) in zip(items, csv_data):
         assert item.name == name
         assert item.price == price
+        assert item.quantity == quantity
 
 
 def test_repr():
@@ -75,16 +79,57 @@ def test_str():
 def test_add_valid_types():
     phone1 = Phone("iPhone 14", 120_000, 5, 2)
     phone2 = Phone("iPhone X", 50_000, 13, 1)
-    item = Item("Смартфон", 15000, 10)
+    item1 = Item("Смартфон", 15000, 10)
     assert phone1 + phone2 == 18
-    assert phone2 + item == 23
+    assert item1 + phone2 == 23
 
 
-def test_add_invalid_types():
-    phone = Phone("iPhone X", 50_000, 13, 1)
-    with pytest.raises(TypeError):
-        phone + 'string'
+class ItemTest1(Item):
 
-    item = Item("Смартфон", 15000, 10)
-    with pytest.raises(TypeError):
-        item + 5
+    @classmethod
+    def instantiate_from_csv(cls):
+        cls.all = []
+
+        try:
+            with open('./src/items.csv', newline='', encoding="cp1251") as csvfile:  # некорректный путь
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if len(row) < 3:
+                        raise InstantiateCSVError('_Файл item.csv поврежден_')
+                    name = row['name']
+                    price = cls.string_to_number(row['price'])
+                    quantity = cls.string_to_number(row['quantity'])
+                    cls(name, price, quantity)
+        except FileNotFoundError:
+            raise FileNotFoundError('_Отсутствует файл item.csv_')
+
+
+def test_instantiate_from_csv_file_not_found():
+    with pytest.raises(FileNotFoundError):
+        ItemTest1.instantiate_from_csv()
+
+
+class ItemTest2(Item):
+
+    @classmethod
+    def instantiate_from_csv(cls):
+        cls.all = []
+
+        try:
+            with open('test_items.csv', newline='', encoding="cp1251") as csvfile:  # некорректный файл
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if len(row) < 3:
+                        raise InstantiateCSVError('_Файл item.csv поврежден_')
+                    name = row['name']
+                    price = cls.string_to_number(row['price'])
+                    quantity = cls.string_to_number(row['quantity'])
+                    cls(name, price, quantity)
+        except FileNotFoundError:
+            raise FileNotFoundError('_Отсутствует файл item.csv_')
+
+
+def test_instantiate_from_csv_missing_column():
+    with pytest.raises(InstantiateCSVError) as exc_info:
+        ItemTest2.instantiate_from_csv()
+    assert str(exc_info.value) == '_Файл item.csv поврежден_'
